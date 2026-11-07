@@ -1,0 +1,44 @@
+name: Build Android APK (No Android Studio Needed)
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Install Frontend Dependencies & Build Web
+        run: |
+          cd frontend
+          npm install
+          npm run build
+          npx cap sync android
+
+      - name: Build Android Debug APK
+        run: |
+          cd frontend/android
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: AI-RADAR-Debug-APK
+          path: frontend/android/app/build/outputs/apk/debug/app-debug.apk
