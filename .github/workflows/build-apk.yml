@@ -27,6 +27,10 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
 
+      - name: Accept Android SDK Licenses
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
       - name: Install Frontend Dependencies & Build Web
         run: |
           cd frontend
@@ -53,10 +57,10 @@ jobs:
           tag_name: v1.0.0
           name: "AI RADAR v1.0.0 (Android APK)"
           body: |
-            ### 🚀 AI RADAR Android App Build
-            Built automatically via GitHub Actions (no Android Studio required).
+            ### 🚀 AI RADAR Android App Release for Varun Foundry
+            Built automatically via cloud GitHub Actions CI.
             
-            **Direct Download:** Click `app-debug.apk` below to download directly to your Android phone and install!
+            **Direct Download:** Click `app-debug.apk` below on your phone to install immediately!
           files: frontend/android/app/build/outputs/apk/debug/app-debug.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
