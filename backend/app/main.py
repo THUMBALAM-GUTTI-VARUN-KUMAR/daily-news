@@ -25,14 +25,20 @@ async def lifespan(app: FastAPI):
     logger.info(f"Initializing {settings.PROJECT_NAME} for {settings.ORGANIZATION}...")
     Base.metadata.create_all(bind=engine)
     
-    # Seed default sources in DB
+    # Load persisted settings from DB
     db = SessionLocal()
     pipeline = PipelineOrchestrator()
     try:
+        from app.models.setting import SystemSetting
+        db_key = db.query(SystemSetting).filter(SystemSetting.key == "gemini_api_key").first()
+        if db_key and db_key.value:
+            settings.GEMINI_API_KEY = db_key.value
+            logger.info("Loaded Gemini API key from database.")
+
         pipeline.seed_default_sources(db)
         logger.info("Default sources seeded successfully.")
     except Exception as e:
-        logger.error(f"Error seeding sources: {e}")
+        logger.error(f"Error in startup DB initialization: {e}")
     finally:
         db.close()
 

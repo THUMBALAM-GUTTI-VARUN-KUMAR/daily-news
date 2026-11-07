@@ -28,6 +28,8 @@ export const initNativeApp = async () => {
   if (!isNative) return;
   try {
     await SplashScreen.hide();
+    // Disable overlay to ensure UI never renders behind battery, clock, or notification icons
+    await StatusBar.setOverlaysWebView({ overlay: false });
     await StatusBar.setStyle({ style: Style.Dark });
     await StatusBar.setBackgroundColor({ color: '#FAF7F8' });
   } catch {

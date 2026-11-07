@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
-import { Settings, Key, Clock, RotateCcw, Check, Sparkles, Cpu, Smartphone } from 'lucide-react';
+import { Settings, Key, Clock, RotateCcw, Check, Sparkles, Cpu, Smartphone, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 
 export const SettingsPage: React.FC = () => {
   const queryClient = useQueryClient();
-  const [apiKey, setApiKey] = useState('');
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem('ai_radar_gemini_api_key') || '');
+  const [showApiKey, setShowApiKey] = useState(false);
   const [apiHost, setApiHost] = useState(() => localStorage.getItem('ai_radar_api_host') || '');
   const [intervalMin, setIntervalMin] = useState(10);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -26,7 +27,7 @@ export const SettingsPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings'] });
       setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 2500);
+      setTimeout(() => setSaveSuccess(false), 3000);
     },
   });
 
@@ -47,10 +48,20 @@ export const SettingsPage: React.FC = () => {
     } else {
       localStorage.removeItem('ai_radar_api_host');
     }
+
+    if (apiKey.trim()) {
+      localStorage.setItem('ai_radar_gemini_api_key', apiKey.trim());
+    }
+
     updateMutation.mutate({
       scan_interval_minutes: Number(intervalMin),
-      gemini_api_key: apiKey ? apiKey : undefined,
+      gemini_api_key: apiKey.trim() ? apiKey.trim() : undefined,
     });
+  };
+
+  const handleClearKey = () => {
+    setApiKey('');
+    localStorage.removeItem('ai_radar_gemini_api_key');
   };
 
   return (
@@ -67,6 +78,15 @@ export const SettingsPage: React.FC = () => {
           </p>
         </div>
       </div>
+
+      {saveSuccess && (
+        <div className="mb-4 p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 flex items-center space-x-2.5 text-emerald-800 dark:text-emerald-200 animate-in fade-in slide-in-from-top duration-300">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+          <p className="text-xs font-semibold">
+            Settings & Gemini API key saved! Synced to local storage and database.
+          </p>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="py-20 text-center text-xs text-slate-500 dark:text-brand-mutedDark font-medium">
@@ -108,25 +128,54 @@ export const SettingsPage: React.FC = () => {
                 <span>Google Gemini API Key</span>
               </div>
               <span
-                className={`text-[10px] px-2.5 py-0.5 rounded-full border font-bold ${
-                  appSettings?.gemini_configured
+                className={`text-[10px] px-2.5 py-0.5 rounded-full border font-bold flex items-center gap-1 ${
+                  (appSettings?.gemini_configured || apiKey)
                     ? 'bg-emerald-50 dark:bg-brand-rose/10 border-emerald-200 dark:border-brand-rose/30 text-emerald-700 dark:text-brand-rose'
                     : 'bg-amber-50 dark:bg-brand-amber/10 border-amber-200 dark:border-brand-amber/30 text-amber-700 dark:text-brand-amber'
                 }`}
               >
-                {appSettings?.gemini_configured ? 'Active' : 'Heuristics'}
+                {(appSettings?.gemini_configured || apiKey) ? (
+                  <>
+                    <Check className="w-3 h-3 text-emerald-600" />
+                    <span>Saved & Active</span>
+                  </>
+                ) : (
+                  'Heuristics Mode'
+                )}
               </span>
             </div>
             <p className="text-[11px] text-slate-500 dark:text-brand-mutedDark mb-3 font-normal">
-              Synthesizes 3-sentence briefings and computes 11-category classification after collection.
+              Synthesizes 3-sentence briefings and computes 11-category classification. Stored persistently in your app and database.
             </p>
-            <input
-              type="password"
-              placeholder={appSettings?.gemini_configured ? '••••••••••••••••••••••••••••••' : 'Paste API Key'}
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-brand-rose font-mono shadow-sm"
-            />
+            <div className="relative">
+              <input
+                type={showApiKey ? 'text' : 'password'}
+                placeholder={appSettings?.gemini_configured ? '•••••••••••••••••••••••••••••• (Saved)' : 'Paste API Key (e.g. AIzaSy...)'}
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                className="w-full pl-3.5 pr-20 py-2.5 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-brand-rose font-mono shadow-sm"
+              />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center space-x-1">
+                {apiKey && (
+                  <button
+                    type="button"
+                    onClick={handleClearKey}
+                    className="p-1 rounded-md text-slate-400 hover:text-red-500 transition-colors"
+                    title="Clear key"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowApiKey(!showApiKey)}
+                  className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors"
+                  title={showApiKey ? 'Hide Key' : 'Show Key'}
+                >
+                  {showApiKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Mobile App API Host */}
@@ -136,11 +185,11 @@ export const SettingsPage: React.FC = () => {
               <span>Mobile App Backend Server</span>
             </div>
             <p className="text-[11px] text-slate-500 dark:text-brand-mutedDark mb-3 font-normal">
-              For native iOS / Android APK. Enter your computer's local network IP or production URL (e.g. http://192.168.1.100:8000). Leave empty for web default.
+              For native Android APK. Defaults to your computer IP <code className="font-mono text-brand-rose">http://10.112.33.83:8000</code>.
             </p>
             <input
               type="text"
-              placeholder="e.g. http://192.168.1.100:8000"
+              placeholder="e.g. http://10.112.33.83:8000"
               value={apiHost}
               onChange={(e) => setApiHost(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-brand-rose font-mono shadow-sm"
@@ -198,35 +247,43 @@ export const SettingsPage: React.FC = () => {
           <div className="p-4 rounded-3xl bg-white dark:bg-[#131926] border border-slate-200/90 dark:border-white/[0.08] space-y-2 shadow-sm">
             <div className="flex items-center space-x-2 text-slate-900 dark:text-white font-bold mb-1">
               <Cpu className="w-4 h-4 text-brand-rose" />
-              <span>Engine Details</span>
+              <span>System & Hardware Architecture</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-slate-100 dark:border-white/5 text-slate-500 dark:text-brand-mutedDark">
-              <span>Database</span>
-              <span className="text-slate-900 dark:text-white font-mono font-semibold">SQLite WAL Mode</span>
-            </div>
-            <div className="flex justify-between py-1 border-b border-slate-100 dark:border-white/5 text-slate-500 dark:text-brand-mutedDark">
-              <span>Deduplication</span>
-              <span className="text-slate-900 dark:text-white font-mono font-semibold">RapidFuzz Entity & Token Set</span>
-            </div>
-            <div className="flex justify-between py-1 text-slate-500 dark:text-brand-mutedDark">
-              <span>Ranking</span>
-              <span className="text-slate-900 dark:text-white font-mono font-semibold">40% Imp + 30% User + 20% Rec + 10% Nov</span>
+            <div className="grid grid-cols-2 gap-2 text-[11px]">
+              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/5">
+                <span className="text-slate-400 dark:text-brand-mutedDark block text-[9px] uppercase font-bold tracking-wider">
+                  Organization
+                </span>
+                <span className="font-semibold text-slate-900 dark:text-white">
+                  {appSettings?.organization || 'Varun Foundry'}
+                </span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/5">
+                <span className="text-slate-400 dark:text-brand-mutedDark block text-[9px] uppercase font-bold tracking-wider">
+                  AI Model
+                </span>
+                <span className="font-semibold text-slate-900 dark:text-white">
+                  {appSettings?.gemini_model || 'gemini-2.5-flash'}
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Submit button */}
+          {/* Save Action Button */}
           <button
             type="submit"
             disabled={updateMutation.isPending}
-            className="w-full py-3.5 rounded-full bg-gradient-to-r from-brand-rose to-brand-coral hover:from-brand-roseHover hover:to-brand-rose text-white font-extrabold text-xs transition-all flex items-center justify-center space-x-2 shadow-dating-match active:scale-95 cursor-pointer"
+            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-brand-rose to-brand-coral hover:from-brand-roseHover hover:to-brand-rose text-white font-bold text-sm shadow-dating-match active:scale-98 transition-all flex items-center justify-center space-x-2 cursor-pointer"
           >
-            {saveSuccess ? (
+            {updateMutation.isPending ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : saveSuccess ? (
               <>
-                <Check className="w-4 h-4" />
-                <span>Preferences Saved</span>
+                <Check className="w-4 h-4 stroke-[3]" />
+                <span>Preferences Saved!</span>
               </>
             ) : (
-              <span>Save Preferences</span>
+              <span>Save Configuration</span>
             )}
           </button>
         </form>
@@ -234,3 +291,5 @@ export const SettingsPage: React.FC = () => {
     </div>
   );
 };
+
+export default SettingsPage;

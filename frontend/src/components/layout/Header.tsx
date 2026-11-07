@@ -35,7 +35,12 @@ export const Header: React.FC = () => {
   });
 
   return (
-    <header className="sticky top-0 z-40 w-full glass-surface border-b border-slate-200/80 dark:border-white/[0.06] px-4 py-2.5 transition-colors">
+    <header 
+      className="sticky top-0 z-40 w-full glass-surface border-b border-slate-200/80 dark:border-white/[0.06] px-4 pb-2.5 transition-colors"
+      style={{
+        paddingTop: 'max(14px, calc(env(safe-area-inset-top, 0px) + 8px))',
+      }}
+    >
       <div className="max-w-md mx-auto flex items-center justify-between">
         {/* Brand Profile Pill */}
         <div className="flex items-center space-x-2.5">

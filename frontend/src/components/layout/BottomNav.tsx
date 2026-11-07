@@ -13,7 +13,12 @@ const NAV_ITEMS = [
 
 export const BottomNav: React.FC = () => {
   return (
-    <nav className="fixed bottom-2.5 left-0 right-0 z-40 px-2 sm:px-3 pointer-events-none">
+    <nav 
+      className="fixed left-0 right-0 z-40 px-2 sm:px-3 pointer-events-none"
+      style={{
+        bottom: 'max(10px, calc(env(safe-area-inset-bottom, 0px) + 8px))',
+      }}
+    >
       <div className="max-w-md mx-auto glass-surface rounded-full px-1.5 py-1 border border-slate-200/90 dark:border-white/10 shadow-[0_12px_35px_rgba(15,23,42,0.08)] dark:shadow-[0_12px_35px_rgba(0,0,0,0.6)] flex items-center justify-around pointer-events-auto">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
