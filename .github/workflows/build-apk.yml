@@ -27,9 +27,10 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
 
-      - name: Accept Android SDK Licenses
+      - name: Setup Android SDK Platforms & Licenses
         run: |
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" "build-tools;36.0.0" || true
 
       - name: Install Frontend Dependencies & Build Web
         run: |
@@ -42,7 +43,14 @@ jobs:
         run: |
           cd frontend/android
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee gradle.log
+
+      - name: Upload Gradle Build Log on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Gradle-Error-Log
+          path: frontend/android/gradle.log
 
       - name: Upload Android APK Artifact
         uses: actions/upload-artifact@v4
