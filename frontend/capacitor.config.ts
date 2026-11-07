@@ -4,7 +4,6 @@ const config: CapacitorConfig = {
   appId: 'com.varunfoundry.airadar',
   appName: 'AI RADAR',
   webDir: 'dist',
-  bundledWebRuntime: false,
   server: {
     androidScheme: 'https',
     cleartext: true,
