@@ -84,12 +84,13 @@ export const api = {
   },
 
   triggerScan: async (): Promise<{ status: string; message: string }> => {
-    try {
-      const res = await fetchWithTimeout(url('/radar/scan'), { method: 'POST' }, 5000);
-      return await handleResponse(res);
-    } catch {
-      return { status: 'success', message: 'Autonomous mobile radar scan complete.' };
-    }
+    // 1. Run local radar engine scan (includes live Gemini generation if key configured)
+    const localResult = await localRadar.triggerScan();
+
+    // 2. Also trigger backend pipeline if reachable
+    fetchWithTimeout(url('/radar/scan'), { method: 'POST' }, 2500).catch(() => {});
+
+    return localResult;
   },
 
   // STORIES

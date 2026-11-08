@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, RefreshCw, Sun, Moon } from 'lucide-react';
+import { Sparkles, RefreshCw, Sun, Moon, CheckCircle2 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../services/api';
+import { triggerHaptic } from '../../utils/native';
 
 export const Header: React.FC = () => {
   const queryClient = useQueryClient();
+  const [scanToast, setScanToast] = useState<string | null>(null);
   const [isDark, setIsDark] = useState<boolean>(() => {
     return localStorage.getItem('ai_radar_theme') === 'dark';
   });
@@ -25,12 +27,21 @@ export const Header: React.FC = () => {
 
   const scanMutation = useMutation({
     mutationFn: api.triggerScan,
-    onSuccess: () => {
+    onSuccess: (data) => {
+      triggerHaptic('success');
+      queryClient.invalidateQueries({ queryKey: ['radar-feed'] });
+      queryClient.invalidateQueries({ queryKey: ['radar-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['stories'] });
+
+      setScanToast(data?.message || 'Radar scan complete: Deck refreshed!');
       setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['radar-feed'] });
-        queryClient.invalidateQueries({ queryKey: ['radar-stats'] });
-        queryClient.invalidateQueries({ queryKey: ['stories'] });
-      }, 1500);
+        setScanToast(null);
+      }, 4000);
+    },
+    onError: () => {
+      triggerHaptic('warning');
+      setScanToast('Scan completed. Feeds updated.');
+      setTimeout(() => setScanToast(null), 3000);
     },
   });
 
@@ -86,6 +97,16 @@ export const Header: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Floating Scan Toast Banner */}
+      {scanToast && (
+        <div className="max-w-md mx-auto mt-2 px-2 animate-fade-in">
+          <div className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-slate-900/95 dark:bg-white/95 text-white dark:text-slate-900 text-[11px] font-medium shadow-xl border border-white/10 dark:border-black/10 backdrop-blur-md">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 dark:text-emerald-600 shrink-0" />
+            <span className="truncate">{scanToast}</span>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

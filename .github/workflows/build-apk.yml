@@ -62,13 +62,13 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         with:
-          tag_name: v1.0.1
-          name: "AI RADAR v1.0.1 (Offline-First Autonomous Android APK)"
+          tag_name: v1.0.2
+          name: "AI RADAR v1.0.2 (Auto-Save Key & Interactive Scan Engine)"
           body: |
-            ### 🚀 AI RADAR Android App v1.0.1 for Varun Foundry
-            - **Autonomous Offline-First Engine**: Works anywhere on phone (WiFi, 4G/5G, or Airplane mode) with 40 preloaded AI intelligence stories and 13 feeds.
-            - **Safe Area Insets**: Fixed layout under battery, clock, and Android gesture navigation bars.
-            - **Persistent API Keys**: Instant local & native Android preferences storage with live test button.
+            ### 🚀 AI RADAR Android App v1.0.2 for Varun Foundry
+            - **Instant Keystroke Auto-Save**: API keys and backend host automatically persist to native Android SharedPreferences on every keystroke and on blur. No need to hunt for a save button!
+            - **Live Interactive Radar Scan**: Tapping 'Scan' runs an on-device radar pass, calls Gemini 2.5 Flash if key is configured, reshuffles high-signal cards to top of deck, triggers native haptics, and shows a real-time HUD notification.
+            - **Safe Area Insets**: Notch, battery, and clock layout fully protected.
             
             **Direct Download:** Download `app-debug.apk` below on your phone to install!
           files: frontend/android/app/build/outputs/apk/debug/app-debug.apk

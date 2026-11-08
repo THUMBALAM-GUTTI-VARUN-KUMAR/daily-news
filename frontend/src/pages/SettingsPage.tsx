@@ -30,6 +30,7 @@ export const SettingsPage: React.FC = () => {
   // Key verification states
   const [isTestingKey, setIsTestingKey] = useState(false);
   const [testResult, setTestResult] = useState<{ valid: boolean; message: string } | null>(null);
+  const [autoSavedBadge, setAutoSavedBadge] = useState(false);
 
   const { data: appSettings, isLoading } = useQuery({
     queryKey: ['settings'],
@@ -58,6 +59,39 @@ export const SettingsPage: React.FC = () => {
     }
   }, [appSettings]);
 
+  // Instant Auto-Save on every keystroke
+  const handleApiKeyChange = (val: string) => {
+    setApiKey(val);
+    setTestResult(null);
+    const trimmed = val.trim();
+    if (trimmed) {
+      storage.set('ai_radar_gemini_api_key', trimmed);
+    } else {
+      storage.remove('ai_radar_gemini_api_key');
+    }
+    setAutoSavedBadge(true);
+    setTimeout(() => setAutoSavedBadge(false), 2000);
+  };
+
+  const handleApiKeyBlur = () => {
+    const trimmed = apiKey.trim();
+    if (trimmed) {
+      storage.set('ai_radar_gemini_api_key', trimmed);
+      // Background sync to backend if online
+      api.updateSettings({ gemini_api_key: trimmed }).catch(() => {});
+    }
+  };
+
+  const handleApiHostChange = (val: string) => {
+    setApiHost(val);
+    const trimmed = val.trim();
+    if (trimmed) {
+      storage.set('ai_radar_api_host', trimmed);
+    } else {
+      storage.remove('ai_radar_api_host');
+    }
+  };
+
   const handleTestKey = async () => {
     const keyToTest = apiKey.trim();
     if (!keyToTest) {
@@ -71,7 +105,11 @@ export const SettingsPage: React.FC = () => {
         `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(keyToTest)}`
       );
       if (res.ok) {
-        setTestResult({ valid: true, message: 'Google Gemini API key verified successfully!' });
+        setTestResult({ valid: true, message: 'Google Gemini API key verified successfully! Saved to device.' });
+        // Guarantee key is saved
+        await storage.set('ai_radar_gemini_api_key', keyToTest);
+        api.updateSettings({ gemini_api_key: keyToTest }).catch(() => {});
+        queryClient.invalidateQueries({ queryKey: ['settings'] });
       } else {
         const data = await res.json().catch(() => ({}));
         const errDetail = data?.error?.message || `HTTP ${res.status} error`;
@@ -212,10 +250,8 @@ export const SettingsPage: React.FC = () => {
                 type={showApiKey ? 'text' : 'password'}
                 placeholder={isConfigured ? 'Paste your Gemini API key (starts with AIzaSy...)' : 'Paste API Key (starts with AIzaSy...)'}
                 value={apiKey}
-                onChange={(e) => {
-                  setApiKey(e.target.value);
-                  setTestResult(null);
-                }}
+                onChange={(e) => handleApiKeyChange(e.target.value)}
+                onBlur={handleApiKeyBlur}
                 className="w-full pl-3.5 pr-20 py-2.5 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-brand-rose font-mono shadow-sm"
               />
               <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center space-x-1">
@@ -261,8 +297,8 @@ export const SettingsPage: React.FC = () => {
                 )}
               </button>
 
-              <span className="text-[10px] text-slate-400">
-                Auto-saved on device
+              <span className={`text-[10px] font-medium transition-all ${autoSavedBadge ? 'text-emerald-600 dark:text-emerald-400 font-bold scale-105' : 'text-slate-400'}`}>
+                {autoSavedBadge ? '✓ Auto-Saved' : 'Auto-saved on device'}
               </span>
             </div>
 
@@ -323,7 +359,7 @@ export const SettingsPage: React.FC = () => {
               type="text"
               placeholder="e.g. http://10.112.33.83:8000"
               value={apiHost}
-              onChange={(e) => setApiHost(e.target.value)}
+              onChange={(e) => handleApiHostChange(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-brand-rose font-mono shadow-sm"
             />
           </div>
