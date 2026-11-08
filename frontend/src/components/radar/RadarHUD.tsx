@@ -7,7 +7,7 @@ interface RadarHUDProps {
 }
 
 export const RadarHUD: React.FC<RadarHUDProps> = ({ stats }) => {
-  const formatTimeAgo = (dateStr?: string) => {
+  const formatTimeAgo = (dateStr?: string | null) => {
     if (!dateStr) return 'Just now';
     try {
       const date = new Date(dateStr);
