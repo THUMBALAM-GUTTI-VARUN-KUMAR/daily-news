@@ -1,8 +1,9 @@
 import React, { useRef } from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import type { Story } from '../../types';
-import { ArrowRight, Zap, CheckCircle2, Heart, X as XIcon, Building2 } from 'lucide-react';
+import { ArrowRight, Zap, CheckCircle2, Heart, X as XIcon, Building2, Clock } from 'lucide-react';
 import { getStoryVisualTheme } from '../../utils/visuals';
+import { formatStoryTime } from '../../utils/date';
 
 interface RadarCardProps {
   story: Story;
@@ -54,6 +55,7 @@ export const RadarCard: React.FC<RadarCardProps> = ({
 
   const signalMatch = Math.round((story.importance_score || 0.5) * 100);
   const theme = getStoryVisualTheme(story.category, story.companies?.[0]);
+  const timeInfo = formatStoryTime(story.published_at || story.discovered_at);
 
   return (
     <motion.div
@@ -119,11 +121,19 @@ export const RadarCard: React.FC<RadarCardProps> = ({
             <CheckCircle2 className="w-3.5 h-3.5 text-brand-emerald fill-brand-emerald/20 ml-0.5 flex-shrink-0" />
           </div>
 
-          {story.is_breaking && (
-            <span className="px-2 py-0.5 rounded-full bg-brand-rose text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shadow-sm">
-              <Zap className="w-2.5 h-2.5 fill-white" /> Breaking
-            </span>
-          )}
+          <div className="flex items-center space-x-1.5">
+            {timeInfo.isToday && (
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/90 text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                <span>Today</span>
+              </span>
+            )}
+            {story.is_breaking && (
+              <span className="px-2 py-0.5 rounded-full bg-brand-rose text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                <Zap className="w-2.5 h-2.5 fill-white" /> Breaking
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -135,7 +145,12 @@ export const RadarCard: React.FC<RadarCardProps> = ({
         <div className="space-y-1">
           {/* Read time and metadata */}
           <div className="flex items-center space-x-1.5 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-            <span className="font-semibold text-slate-700 dark:text-slate-300 truncate max-w-[130px]">{story.source_name || 'Verified Source'}</span>
+            <span className="font-semibold text-slate-700 dark:text-slate-300 truncate max-w-[120px]">{story.source_name || 'Verified Source'}</span>
+            <span>•</span>
+            <span className={`flex items-center gap-1 font-bold ${timeInfo.isToday ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}`}>
+              <Clock className="w-3 h-3" />
+              <span>{timeInfo.text}</span>
+            </span>
             <span>•</span>
             <span>{story.read_time_min || 2} min read</span>
           </div>

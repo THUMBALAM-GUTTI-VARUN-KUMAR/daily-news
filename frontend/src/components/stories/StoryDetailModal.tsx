@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ExternalLink, Bookmark, Sparkles, Building2, Cpu, Zap, CheckCircle2 } from 'lucide-react';
+import { X, ExternalLink, Bookmark, Sparkles, Building2, Cpu, Zap, CheckCircle2, Clock } from 'lucide-react';
 import type { Story } from '../../types';
+import { formatStoryTime } from '../../utils/date';
 
 interface StoryDetailModalProps {
   story: Story | null;
@@ -21,6 +22,7 @@ export const StoryDetailModal: React.FC<StoryDetailModalProps> = ({
   if (!story) return null;
 
   const signalMatch = Math.round((story.importance_score || 0.5) * 100);
+  const timeInfo = formatStoryTime(story.published_at || story.discovered_at);
 
   return (
     <AnimatePresence>
@@ -67,10 +69,15 @@ export const StoryDetailModal: React.FC<StoryDetailModalProps> = ({
               </button>
             </div>
 
-            {/* Source & Verified Status */}
+            {/* Source & Verified Status & Date */}
             <div className="flex items-center space-x-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium mt-3">
               <span className="text-slate-900 dark:text-white font-bold">{story.source_name || 'Verified Source'}</span>
               <CheckCircle2 className="w-3.5 h-3.5 text-brand-emerald fill-brand-emerald/20" />
+              <span>•</span>
+              <span className={`flex items-center gap-1 font-semibold ${timeInfo.isToday ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                <Clock className="w-3 h-3" />
+                <span>{timeInfo.text}</span>
+              </span>
               <span>•</span>
               <span className="text-brand-rose font-bold">{signalMatch}% Compatibility Match</span>
             </div>

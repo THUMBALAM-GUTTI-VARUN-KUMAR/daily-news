@@ -62,13 +62,13 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         with:
-          tag_name: v1.0.2
-          name: "AI RADAR v1.0.2 (Auto-Save Key & Interactive Scan Engine)"
+          tag_name: v1.0.3
+          name: "AI RADAR v1.0.3 (Today Badges, Publication Timestamps & Auto-Save)"
           body: |
-            ### 🚀 AI RADAR Android App v1.0.2 for Varun Foundry
-            - **Instant Keystroke Auto-Save**: API keys and backend host automatically persist to native Android SharedPreferences on every keystroke and on blur. No need to hunt for a save button!
-            - **Live Interactive Radar Scan**: Tapping 'Scan' runs an on-device radar pass, calls Gemini 2.5 Flash if key is configured, reshuffles high-signal cards to top of deck, triggers native haptics, and shows a real-time HUD notification.
-            - **Safe Area Insets**: Notch, battery, and clock layout fully protected.
+            ### 🚀 AI RADAR Android App v1.0.3 for Varun Foundry
+            - **Today Badges & Real-Time Timestamps**: Every card now clearly shows publication recency (e.g. `● TODAY`, `Today • 2h ago`, `Yesterday`, or date).
+            - **Instant Keystroke Auto-Save**: Gemini API key automatically persists on every keystroke and on blur with green indicator.
+            - **Autonomous Scan Engine**: Tapping 'Scan' runs an on-device radar pass, calls Gemini 2.5 Flash if key is configured, reshuffles deck, and displays floating HUD alert.
             
             **Direct Download:** Download `app-debug.apk` below on your phone to install!
           files: frontend/android/app/build/outputs/apk/debug/app-debug.apk
